@@ -1,4 +1,4 @@
-
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.19;
 
 // Uncomment this line to use console.log
@@ -21,61 +21,59 @@ contract DocuVerse {
 
     struct User {
         string userName;
-        string userID;
         uint256[] allDocumentIDs;
         mapping(uint256 => Document) documents; // Document ID to document mapping
     }
 
-    mapping(address => User) public users;
-    mapping(address => bool) public register;
+    mapping(string => User) public users;
+    mapping(string => bool) public register;
 
-    modifier onlyOwner(address userAddress) {
-        require(msg.sender == userAddress, "Only owner can modify data");
-        _;
-    }
+    // modifier onlyOwner(address userAddress) {
+    //     require(_userID == userAddress, "Only owner can modify data");
+    //     _;
+    // }
 
     function addUser(string memory _userName, string memory _userID) public {
 
-        require(register[msg.sender] == false, "User is already registered");
+        require(register[_userID] == false, "User is already registered");
 
-        users[msg.sender].userName = _userName;
-        users[msg.sender].userID = _userID;
-        register[msg.sender] = true;
-
-    }
-
-    function addDocument(string memory _ipfsHash, string memory _documentName, uint256 _documentID, string memory _versionRemark) public{
-
-        require(register[msg.sender] == true, "User doesn't exist");
-
-        require(users[msg.sender].allDocumentIDs.length < _documentID, "Document with documentID already present,please use unique documentID");
-
-
-        users[msg.sender].allDocumentIDs.push(_documentID);
-
-        users[msg.sender].documents[_documentID].documentName = _documentName;
-        users[msg.sender].documents[_documentID].latestVersion = 1;
-        users[msg.sender].documents[_documentID].allVersionIDs.push(1);
-        users[msg.sender].documents[_documentID].versions[1].timestamp = block.timestamp;
-        users[msg.sender].documents[_documentID].versions[1].remark = _versionRemark;
-        users[msg.sender].documents[_documentID].versions[1].ipfsHash = _ipfsHash;
+        users[_userID].userName = _userName;
+        register[_userID] = true;
 
     }
 
-    function updateDocument(string memory _ipfsHash, uint256 _documentID, string memory _versionRemark) public{
+    function addDocument(string memory _ipfsHash, string memory _documentName, uint256 _documentID, string memory _versionRemark, string memory _userID) public{
 
-        require(register[msg.sender] == true, "User doesn't exist");
+        require(register[_userID] == true, "User doesn't exist");
 
-        require(users[msg.sender].allDocumentIDs.length >= _documentID, "Document with documentID doesn't present,please use add document to add new document");
+        require(users[_userID].allDocumentIDs.length < _documentID, "Document with documentID already present,please use unique documentID");
+
+
+        users[_userID].allDocumentIDs.push(_documentID);
+
+        users[_userID].documents[_documentID].documentName = _documentName;
+        users[_userID].documents[_documentID].latestVersion = 1;
+        users[_userID].documents[_documentID].allVersionIDs.push(1);
+        users[_userID].documents[_documentID].versions[1].timestamp = block.timestamp;
+        users[_userID].documents[_documentID].versions[1].remark = _versionRemark;
+        users[_userID].documents[_documentID].versions[1].ipfsHash = _ipfsHash;
+
+    }
+
+    function updateDocument(string memory _ipfsHash, uint256 _documentID, string memory _versionRemark, string memory _userID) public{
+
+        require(register[_userID] == true, "User doesn't exist");
+
+        require(users[_userID].allDocumentIDs.length >= _documentID, "Document with documentID doesn't present,please use add document to add new document");
 
         
 
-        uint256 lVersion = ++users[msg.sender].documents[_documentID].latestVersion;
+        uint256 lVersion = ++users[_userID].documents[_documentID].latestVersion;
 
-        users[msg.sender].documents[_documentID].allVersionIDs.push(lVersion);
-        users[msg.sender].documents[_documentID].versions[lVersion].timestamp = block.timestamp;
-        users[msg.sender].documents[_documentID].versions[lVersion].remark = _versionRemark;
-        users[msg.sender].documents[_documentID].versions[lVersion].ipfsHash = _ipfsHash;
+        users[_userID].documents[_documentID].allVersionIDs.push(lVersion);
+        users[_userID].documents[_documentID].versions[lVersion].timestamp = block.timestamp;
+        users[_userID].documents[_documentID].versions[lVersion].remark = _versionRemark;
+        users[_userID].documents[_documentID].versions[lVersion].ipfsHash = _ipfsHash;
 
     }
 
@@ -93,35 +91,35 @@ contract DocuVerse {
         rvers[] versionList;
     }
 
-    function getDocuments() public returns( rdoc[] memory ){
+    function getDocuments (string memory _userID) public view returns ( rdoc[] memory){
 
-        require(register[msg.sender] == true, "User doesn't exist");
+        require(register[_userID] == true, "User doesn't exist");
 
-        // users[msg.sender].documents;
+        // users[_userID].documents;
 
         // rdoc[] memory docList;
 
-        rdoc[] memory docList = new rdoc[](users[msg.sender].allDocumentIDs.length);
+        rdoc[] memory docList = new rdoc[](users[_userID].allDocumentIDs.length);
 
-        for(uint256 i=0;i<users[msg.sender].allDocumentIDs.length;i++){
+        for(uint256 i=0;i<users[_userID].allDocumentIDs.length;i++){
 
             rdoc memory curDoc;
-            uint256 latestVersion =users[msg.sender].documents[i+1].latestVersion;
+            uint256 latestVersion =users[_userID].documents[i+1].latestVersion;
             curDoc.versionList= new rvers[] (latestVersion);
 
 
-            curDoc.docName = users[msg.sender].documents[i+1].documentName;
+            curDoc.docName = users[_userID].documents[i+1].documentName;
             curDoc.docID = i+1;
 
 
             for(uint256 j=0;j<latestVersion;j++){
                 rvers memory curVerse;
 
-                curVerse.timestamp = users[msg.sender].documents[i+1].versions[j+1].timestamp;
+                curVerse.timestamp = users[_userID].documents[i+1].versions[j+1].timestamp;
 
-                curVerse.remark = users[msg.sender].documents[i+1].versions[j+1].remark;
+                curVerse.remark = users[_userID].documents[i+1].versions[j+1].remark;
 
-                curVerse.ipfsHash = users[msg.sender].documents[i+1].versions[j+1].ipfsHash;
+                curVerse.ipfsHash = users[_userID].documents[i+1].versions[j+1].ipfsHash;
 
                 // curDoc.versionList.push(curVerse);
                 curDoc.versionList[j] = curVerse;
