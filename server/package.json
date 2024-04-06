@@ -22,6 +22,7 @@
     "express": "^4.19.2",
     "ipfs-http-client": "^60.0.1",
     "mongoose": "^8.3.0",
+    "multer": "^1.4.5-lts.1",
     "uuid": "^9.0.1",
     "web3": "^4.7.0"
   },

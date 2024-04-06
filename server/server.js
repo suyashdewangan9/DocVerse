@@ -3,6 +3,8 @@ const express = require('express');
 const {v5} = require('uuid');
 // const ipfsClient = require('ipfs-http-client');
 const {Web3} = require('web3');
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
 
 const User =require('./database.js');
 
@@ -75,7 +77,6 @@ app.post('/createUser',async (req,res)=>{
             });
             await newUser.save();
             const result = await myContract.methods.addUser(userName,userID);
-
             console.log("results from smart contract:" +result);
             
         }
@@ -89,8 +90,12 @@ app.post('/createUser',async (req,res)=>{
     
 })
 
-app.post('/addDocument',(req,res)=>{
+app.post('/addDocument',upload.single('file'),(req,res)=>{
 
+    console.log(req.file);
+
+    res.send("File Uploaded Successfully");
+    
 })
 
 app.get('/documents',(req,res)=>{
